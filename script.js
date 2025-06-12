@@ -144,42 +144,57 @@ let receiptHistory = JSON.parse(localStorage.getItem('receiptHistory') || '[]');
             generateQRCode(receiptNumber, grandTotal);
             
             // Generate Barcode linking to website
-            generateBarcode();
+            //generateBarcode();
         }
 
         function generateQRCode(receiptNumber, total) {
-            const canvas = document.getElementById('qrcode');
-            const receiptData = {
-                receiptId: receiptNumber,
-                business: document.getElementById('businessName').value,
-                customer: document.getElementById('customerName').value || 'Customer',
-                total: total.toFixed(2),
-                date: new Date().toISOString(),
-                website: 'https://uditha-manohara.github.io',
-                verification: `Receipt ${receiptNumber} verified authentic`
-            };
+    const canvas = document.createElement('canvas');
+    const receiptData = {
+        receiptId: receiptNumber,
+        business: document.getElementById('businessName').value,
+        customer: document.getElementById('customerName').value || 'Customer',
+        total: total.toFixed(2),
+        date: new Date().toISOString(),
+        website: 'https://uditha-manohara.github.io',
+        verification: `Receipt ${receiptNumber} verified authentic`
+    };
 
-            const qr = new QRious({
-                element: canvas,
-                value: JSON.stringify(receiptData),
-                size: 120,
-                level: 'H',
-                background: '#ffffff',
-                foreground: '#2d3748'
-            });
-        }
+    const qr = new QRious({
+        element: canvas,
+        value: JSON.stringify(receiptData),
+        size: 120,
+        level: 'H',
+        background: '#ffffff',
+        foreground: '#2d3748'
+    });
 
-        function generateBarcode() {
-            const svg = document.getElementById('barcode');
-            JsBarcode(svg, "https://uditha-manohara.github.io", {
-                format: "CODE128",
-                width: 2,
-                height: 50,
-                displayValue: false,
-                background: "#ffffff",
-                lineColor: "#2d3748"
-            });
-        }
+    const qrImage = document.createElement('img');
+    qrImage.src = canvas.toDataURL('image/png');
+    qrImage.alt = 'QR Code';
+    qrImage.width = 120;
+    qrImage.height = 120;
+
+    const container = document.getElementById('qrcode');
+    container.innerHTML = '';
+    container.appendChild(qrImage);
+}
+
+
+    //function generateBarcode() {
+    //const svg = document.getElementById('barcode');
+    //svg.innerHTML = ''; // Clear any existing
+
+    //JsBarcode(svg, "https://uditha-manohara.github.io", {
+     //   format: "CODE128",
+      //  width: 2,
+       // height: 80, // Increase for full visibility
+       // displayValue: false,
+        //background: "#ffffff",
+        //lineColor: "#2d3748",
+        //margin: 0
+    //});
+//}
+
 
         async function downloadPDF() {
     const button = event.target;
@@ -191,44 +206,27 @@ let receiptHistory = JSON.parse(localStorage.getItem('receiptHistory') || '[]');
         const { jsPDF } = window.jspdf;
         const receiptElement = document.getElementById('receiptPreview');
 
-        // Create off-screen container for accurate full render
+        // Create off-screen container for full render
         const container = document.createElement('div');
         container.style.cssText = `
             position: absolute;
-            left: -9999px;
             top: 0;
+            left: -9999px;
             width: 800px;
             background: white;
-            z-index: -1;
             padding: 40px;
+            z-index: -1;
         `;
 
         const clone = receiptElement.cloneNode(true);
         clone.style.width = '100%';
-        clone.style.height = 'auto';
         clone.style.maxHeight = 'none';
         clone.style.overflow = 'visible';
-
-        // Apply force-fix styles recursively
-        const elementsToFix = clone.querySelectorAll('*');
-        elementsToFix.forEach(el => {
-            el.style.overflow = 'visible';
-            el.style.maxHeight = 'none';
-            el.style.position = 'static';
-        });
-
-        // Fix the preview section wrapper itself
-        const previewSection = clone.closest('.preview-section');
-        if (previewSection) {
-            previewSection.style.maxHeight = 'none';
-            previewSection.style.overflow = 'visible';
-            previewSection.style.position = 'static';
-        }
 
         container.appendChild(clone);
         document.body.appendChild(container);
 
-        // Wait for rendering
+        // Wait for render
         await new Promise(resolve => setTimeout(resolve, 300));
 
         const canvas = await html2canvas(clone, {
@@ -237,27 +235,45 @@ let receiptHistory = JSON.parse(localStorage.getItem('receiptHistory') || '[]');
             backgroundColor: '#ffffff'
         });
 
-        document.body.removeChild(container); // Clean up
+        document.body.removeChild(container);
+
+        const imgWidth = 190;
+        const pageHeight = 295;
+        const canvasHeight = canvas.height;
+        const canvasWidth = canvas.width;
+        const imgHeight = (canvasHeight * imgWidth) / canvasWidth;
 
         const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-        const imgData = canvas.toDataURL('image/png');
-        const imgWidth = 190;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        let position = 0;
 
-        const pageHeight = 295;
-        let heightLeft = imgHeight;
-        let position = 10;
+        const pageCanvas = document.createElement('canvas');
+        const ctx = pageCanvas.getContext('2d');
 
-        // Add the image to PDF
-        pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+        const pageCanvasHeight = (pageHeight * canvasWidth) / imgWidth;
+        pageCanvas.width = canvasWidth;
+        pageCanvas.height = pageCanvasHeight;
 
-        while (heightLeft > 0) {
-            position = 0;
-            pdf.addPage();
-            pdf.addImage(imgData, 'PNG', 10, position - heightLeft + imgHeight, imgWidth, imgHeight);
-            heightLeft -= pageHeight;
+        let remainingHeight = canvasHeight;
+
+        let pageCount = 0;
+
+        while (remainingHeight > 0) {
+            ctx.clearRect(0, 0, canvasWidth, pageCanvasHeight);
+            ctx.drawImage(
+                canvas,
+                0, pageCount * pageCanvasHeight,
+                canvasWidth, pageCanvasHeight,
+                0, 0,
+                canvasWidth, pageCanvasHeight
+            );
+
+            const imgData = pageCanvas.toDataURL('image/png');
+            if (pageCount > 0) pdf.addPage();
+            pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, pageHeight - 20);
+
+            remainingHeight -= pageCanvasHeight;
+            pageCount++;
         }
 
         pdf.setProperties({

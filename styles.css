@@ -403,14 +403,19 @@
             z-index: 2;
         }
 
-        .qr-container, .barcode-container {
-            text-align: center;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        }
+        .qr-container {
+    text-align: center;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
 
         .qr-container h4, .barcode-container h4 {
             font-size: 12px;
@@ -422,15 +427,14 @@
         }
 
         #qrcode {
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 8px;
-            background: white;
-        }
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 8px;
+    background: white;
+    min-height: 120px;
+}
 
-        #barcode {
-            margin-top: 10px;
-        }
+
 
         .receipt-footer {
             text-align: center;
