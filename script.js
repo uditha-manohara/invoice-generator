@@ -219,8 +219,8 @@ let receiptHistory = JSON.parse(localStorage.getItem('receiptHistory') || '[]');
                     title: `Receipt ${document.getElementById('previewReceiptNumber').textContent}`,
                     subject: 'Business Receipt',
                     author: document.getElementById('businessName').value,
-                    creator: 'PayProof Pro',
-                    producer: 'PayProof Pro - Professional Receipt Generator'
+                    creator: 'JustReceipt Pro',
+                    producer: 'JustReceipt Pro - Professional Receipt Generator'
                 });
 
                 // Save PDF
