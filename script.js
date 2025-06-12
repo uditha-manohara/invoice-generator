@@ -191,52 +191,82 @@ let receiptHistory = JSON.parse(localStorage.getItem('receiptHistory') || '[]');
         const { jsPDF } = window.jspdf;
         const receiptElement = document.getElementById('receiptPreview');
 
-        // Create canvas from receipt
-        const canvas = await html2canvas(receiptElement, {
-            scale: 2,
-            useCORS: true,
-            allowTaint: true,
-            backgroundColor: '#ffffff',
-            width: receiptElement.offsetWidth,
-            height: receiptElement.offsetHeight
+        // Create off-screen container for accurate full render
+        const container = document.createElement('div');
+        container.style.cssText = `
+            position: absolute;
+            left: -9999px;
+            top: 0;
+            width: 800px;
+            background: white;
+            z-index: -1;
+            padding: 40px;
+        `;
+
+        const clone = receiptElement.cloneNode(true);
+        clone.style.width = '100%';
+        clone.style.height = 'auto';
+        clone.style.maxHeight = 'none';
+        clone.style.overflow = 'visible';
+
+        // Apply force-fix styles recursively
+        const elementsToFix = clone.querySelectorAll('*');
+        elementsToFix.forEach(el => {
+            el.style.overflow = 'visible';
+            el.style.maxHeight = 'none';
+            el.style.position = 'static';
         });
 
-        // Create PDF
-        const pdf = new jsPDF({
-            orientation: 'portrait',
-            unit: 'm',
-            format: 'a4'
-        });
-
-        const imgWidth = 190;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-        const imgData = canvas.toDataURL('image/png');
-
-        // Calculate the number of pages needed
-        const pageSize = 250; // mm
-        const pageCount = Math.ceil(imgHeight / pageSize);
-
-        for (let i = 0; i < pageCount; i++) {
-            const yOffset = i * pageSize;
-            const pageHeight = Math.min(pageSize, imgHeight - yOffset);
-
-            pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, pageHeight, undefined, 'NONE', 0, 0, yOffset);
-
-            // Add metadata
-            pdf.setProperties({
-                title: `Receipt ${document.getElementById('previewReceiptNumber').textContent}`,
-                subject: 'Business Receipt',
-                author: document.getElementById('businessName').value,
-                creator: 'JustReceipt Pro',
-                producer: 'JustReceipt Pro - Professional Receipt Generator'
-            });
-
-            if (i < pageCount - 1) {
-                pdf.addPage();
-            }
+        // Fix the preview section wrapper itself
+        const previewSection = clone.closest('.preview-section');
+        if (previewSection) {
+            previewSection.style.maxHeight = 'none';
+            previewSection.style.overflow = 'visible';
+            previewSection.style.position = 'static';
         }
 
-        // Save PDF
+        container.appendChild(clone);
+        document.body.appendChild(container);
+
+        // Wait for rendering
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        const canvas = await html2canvas(clone, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#ffffff'
+        });
+
+        document.body.removeChild(container); // Clean up
+
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+        const imgData = canvas.toDataURL('image/png');
+        const imgWidth = 190;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+        const pageHeight = 295;
+        let heightLeft = imgHeight;
+        let position = 10;
+
+        // Add the image to PDF
+        pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        while (heightLeft > 0) {
+            position = 0;
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', 10, position - heightLeft + imgHeight, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+        }
+
+        pdf.setProperties({
+            title: `Receipt ${document.getElementById('previewReceiptNumber').textContent}`,
+            subject: 'Business Receipt',
+            author: document.getElementById('businessName').value,
+            creator: 'JustReceipt Pro'
+        });
+
         const filename = `receipt-${document.getElementById('previewReceiptNumber').textContent}-${new Date().toISOString().split('T')[0]}.pdf`;
         pdf.save(filename);
 
@@ -258,6 +288,7 @@ let receiptHistory = JSON.parse(localStorage.getItem('receiptHistory') || '[]');
         }, 2000);
     }
 }
+
 
         function saveReceipt() {
             const receiptData = {
