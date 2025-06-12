@@ -1,15 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JustReceipt - Advanced Receipt Generator</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js"></script>
-    <link rel="stylesheet" href="styles.css">
+    <title>JustReceipt Pro - Advanced Receipt Generator</title>
+    <script src="assets/libraries/jspdf.umd.min.js"></script>
+    <script src="assets/libraries/html2canvas.min.js"></script>
+    <script src="assets/libraries/qrious.min.js"></script>
+    <script src="assets/libraries/JsBarcode.all.min.js"></script>
+    <link rel="stylesheet" href="assets/css/styles.css">
 </head>
+
 <body>
     <div class="container">
         <div class="header">
@@ -35,7 +37,8 @@ Professional District, State 12345</textarea>
                 </div>
                 <div class="form-group">
                     <label>Email Address</label>
-                    <input type="email" id="businessEmail" placeholder="contact@yourbusiness.com" value="termodevtechnologies@gmail.com">
+                    <input type="email" id="businessEmail" placeholder="contact@yourbusiness.com"
+                        value="termodevtechnologies@gmail.com">
                 </div>
                 <div class="form-group">
                     <label>Tax ID / Business Registration</label>
@@ -87,7 +90,7 @@ Professional District, State 12345</textarea>
                     <div class="item-row">
                         <input type="text" placeholder="Item/Service description" class="item-desc">
                         <input type="number" placeholder="Qty" class="item-qty" min="1">
-                        <input type="number" placeholder="Price" class="item-price" step="0.01" min="0" >
+                        <input type="number" placeholder="Price" class="item-price" step="0.01" min="0">
                         <button class="remove-btn" onclick="removeItem(this)">×</button>
                     </div>
                 </div>
@@ -114,7 +117,8 @@ Professional District, State 12345</textarea>
                         <div class="info-section">
                             <h3>From (Business)</h3>
                             <div id="previewBusinessName">Termodev Technologies</div>
-                            <div id="previewBusinessAddress">123 Business Avenue, Suite 100<br>Professional District, State 12345</div>
+                            <div id="previewBusinessAddress">123 Business Avenue, Suite 100<br>Professional District,
+                                State 12345</div>
                             <div style="margin-top: 10px;">
                                 📞 <span id="previewBusinessPhone">+1 (555) 987-6543</span><br>
                                 ✉️ <span id="previewBusinessEmail">termodevtechnologies@gmail.com</span><br>
@@ -133,7 +137,7 @@ Professional District, State 12345</textarea>
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="receipt-items">
                         <table>
                             <thead>
@@ -177,18 +181,19 @@ Professional District, State 12345</textarea>
                     <div class="payment-info">
                         <strong>💳 Payment Method:</strong> <span id="previewPaymentMethod">💵 Cash Payment</span><br>
                         <strong>🔖 Transaction ID:</strong> <span id="previewTransactionId">N/A</span><br>
-                        <strong>✅ Payment Status:</strong> <span style="color: #38a169; font-weight: bold;">PAID IN FULL</span>
+                        <strong>✅ Payment Status:</strong> <span style="color: #38a169; font-weight: bold;">PAID IN
+                            FULL</span>
                     </div>
 
                     <div class="codes-section">
-    <div class="qr-container">
-        <h4>QR Code - Receipt Verification</h4>
-        <div id="qrcode"></div>
-        <div style="font-size: 10px; margin-top: 8px; color: #718096;">
-            Scan to verify receipt authenticity
-        </div>
-    </div>
-</div>
+                        <div class="qr-container">
+                            <h4>QR Code - Receipt Verification</h4>
+                            <div id="qrcode"></div>
+                            <div style="font-size: 10px; margin-top: 8px; color: #718096;">
+                                Scan to verify receipt authenticity
+                            </div>
+                        </div>
+                    </div>
 
 
                     <div class="receipt-footer">
@@ -208,7 +213,7 @@ Professional District, State 12345</textarea>
 
         <div class="history-section">
             <h2>📊 Dashboard & Receipt History</h2>
-            
+
             <div class="stats-section">
                 <div class="stat-card">
                     <h3 id="totalReceipts">0</h3>
@@ -236,6 +241,7 @@ Professional District, State 12345</textarea>
         </div>
     </div>
 
-<script src="script.js"></script>
+    <script src="assets/js/script.js"></script>
 </body>
+
 </html>
