@@ -10,7 +10,7 @@ let receiptHistory = JSON.parse(localStorage.getItem('receiptHistory') || '[]');
                 document.getElementById('businessPhone').value = businessSettings.phone || '';
                 document.getElementById('businessEmail').value = businessSettings.email || '';
                 document.getElementById('taxId').value = businessSettings.taxId || '';
-                document.getElementById('taxRate').value = businessSettings.taxRate || '8.5';
+                document.getElementById('taxRate').value = businessSettings.taxRate || '0';
             }
         }
 
@@ -182,69 +182,82 @@ let receiptHistory = JSON.parse(localStorage.getItem('receiptHistory') || '[]');
         }
 
         async function downloadPDF() {
-            const button = event.target;
-            const originalText = button.textContent;
-            button.innerHTML = '<span class="loading"></span> Generating PDF...';
-            button.disabled = true;
+    const button = event.target;
+    const originalText = button.textContent;
+    button.innerHTML = '<span class="loading"></span> Generating PDF...';
+    button.disabled = true;
 
-            try {
-                const { jsPDF } = window.jspdf;
-                const receiptElement = document.getElementById('receiptPreview');
-                
-                // Create canvas from receipt
-                const canvas = await html2canvas(receiptElement, {
-                    scale: 2,
-                    useCORS: true,
-                    allowTaint: true,
-                    backgroundColor: '#ffffff',
-                    width: receiptElement.offsetWidth,
-                    height: receiptElement.offsetHeight
-                });
+    try {
+        const { jsPDF } = window.jspdf;
+        const receiptElement = document.getElementById('receiptPreview');
 
-                // Create PDF
-                const pdf = new jsPDF({
-                    orientation: 'portrait',
-                    unit: 'mm',
-                    format: 'a4'
-                });
+        // Create canvas from receipt
+        const canvas = await html2canvas(receiptElement, {
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#ffffff',
+            width: receiptElement.offsetWidth,
+            height: receiptElement.offsetHeight
+        });
 
-                const imgWidth = 190;
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
-                const imgData = canvas.toDataURL('image/png');
-                
-                pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
-                
-                // Add metadata
-                pdf.setProperties({
-                    title: `Receipt ${document.getElementById('previewReceiptNumber').textContent}`,
-                    subject: 'Business Receipt',
-                    author: document.getElementById('businessName').value,
-                    creator: 'JustReceipt Pro',
-                    producer: 'JustReceipt Pro - Professional Receipt Generator'
-                });
+        // Create PDF
+        const pdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'm',
+            format: 'a4'
+        });
 
-                // Save PDF
-                const filename = `receipt-${document.getElementById('previewReceiptNumber').textContent}-${new Date().toISOString().split('T')[0]}.pdf`;
-                pdf.save(filename);
+        const imgWidth = 190;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        const imgData = canvas.toDataURL('image/png');
 
-                // Success feedback
-                button.classList.add('success-bounce');
-                button.innerHTML = '✅ PDF Downloaded!';
-                setTimeout(() => {
-                    button.classList.remove('success-bounce');
-                    button.innerHTML = originalText;
-                    button.disabled = false;
-                }, 2000);
+        // Calculate the number of pages needed
+        const pageSize = 250; // mm
+        const pageCount = Math.ceil(imgHeight / pageSize);
 
-            } catch (error) {
-                console.error('PDF generation error:', error);
-                button.innerHTML = '❌ Error generating PDF';
-                setTimeout(() => {
-                    button.innerHTML = originalText;
-                    button.disabled = false;
-                }, 2000);
+        for (let i = 0; i < pageCount; i++) {
+            const yOffset = i * pageSize;
+            const pageHeight = Math.min(pageSize, imgHeight - yOffset);
+
+            pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, pageHeight, undefined, 'NONE', 0, 0, yOffset);
+
+            // Add metadata
+            pdf.setProperties({
+                title: `Receipt ${document.getElementById('previewReceiptNumber').textContent}`,
+                subject: 'Business Receipt',
+                author: document.getElementById('businessName').value,
+                creator: 'JustReceipt Pro',
+                producer: 'JustReceipt Pro - Professional Receipt Generator'
+            });
+
+            if (i < pageCount - 1) {
+                pdf.addPage();
             }
         }
+
+        // Save PDF
+        const filename = `receipt-${document.getElementById('previewReceiptNumber').textContent}-${new Date().toISOString().split('T')[0]}.pdf`;
+        pdf.save(filename);
+
+        // Success feedback
+        button.classList.add('success-bounce');
+        button.innerHTML = '✅ PDF Downloaded!';
+        setTimeout(() => {
+            button.classList.remove('success-bounce');
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }, 2000);
+
+    } catch (error) {
+        console.error('PDF generation error:', error);
+        button.innerHTML = '❌ Error generating PDF';
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }, 2000);
+    }
+}
 
         function saveReceipt() {
             const receiptData = {
